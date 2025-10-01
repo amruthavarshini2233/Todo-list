@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+  <body>
+  <div class="container">
+    <h3><b>Task Manager</b></h3>
+    <form id="task-form">
+      <p class="error">Please enter a task</p>
+      <input type="text" class="task-input" placeholder="Enter a task" required />
+      <div class="controls">
+        <select class="priority-select">
+          <option value="High">High Priority</option>
+          <option value="Medium" selected>Medium Priority</option>
+          <option value="Low">Low Priority</option>
+        </select>
+        <button type="submit" class="add-task">Add Task</button>
+        <button type="button" class="clear">Clear All</button>
+      </div>
+    </form>
+    <ul class="task-list"></ul>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const taskForm = document.querySelector('#task-form');
+      const inputField = document.querySelector('.task-input');
+      const prioritySelect = document.querySelector('.priority-select');
+      const taskList = document.querySelector('.task-list');
+      const errorMessage = document.querySelector('.error');
+      const clearButton = document.querySelector('.clear');
+      const PRIORITY_ORDER = { "High": 1, "Medium": 2, "Low": 3 };
+      taskForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const taskText = inputField.value.trim();
+        const priority = prioritySelect.value;
+        if (taskText === "") {
+          errorMessage.style.display = "block";
+          return;
+        }
+        errorMessage.style.display = "none";
+        addTaskToList(taskText, priority);
+        inputField.value = "";
+        prioritySelect.value = "Medium";
+      });
+      function addTaskToList(text, priority) {
+        const li = document.createElement('li');
+        li.classList.add(priority.toLowerCase());
+        const leftDiv = document.createElement('div');
+        leftDiv.className = 'left';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        const taskInput = document.createElement('input');
+        taskInput.type = "text";
+        taskInput.value = text;
+        taskInput.disabled = true;
+        taskInput.className = "task-input-added";
+
+        checkbox.addEventListener('change', function () {
+          li.classList.toggle('completed', checkbox.checked);
+        });
+        const prioritySpan = document.createElement('span');
+        prioritySpan.textContent = `Priority: ${priority}`;
+        prioritySpan.className = "priority-label";
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'task-buttons';
+        const editBtn = document.createElement('button');
+        editBtn.textContent = "Edit";
+        editBtn.className = "edit";
+        editBtn.type = "button";
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = "Delete";
+        deleteBtn.className = "delete";
+        deleteBtn.type = "button";
+        editBtn.addEventListener('click', function () {
+          if (editBtn.textContent === "Edit") {
+            taskInput.disabled = false;
+            taskInput.focus();
+            editBtn.textContent = "Save";
+          } else {
+            if (taskInput.value.trim()!== "") {
+              taskInput.disabled = true;
+              editBtn.textContent = "Edit";
+            } else {
+              alert("Task cannot be empty!");
+              taskInput.focus();
+            }
+          }
+        });
+        deleteBtn.addEventListener('click', function () {
+          li.remove();
+        });
+        leftDiv.appendChild(checkbox);
+        leftDiv.appendChild(taskInput);
+        li.appendChild(leftDiv);
+        li.appendChild(prioritySpan);
+        buttonsDiv.appendChild(editBtn);
+        buttonsDiv.appendChild(deleteBtn);
+        li.appendChild(buttonsDiv);
+        taskList.appendChild(li);
+        sortTasksByPriority();
+      }
+      function sortTasksByPriority() {
+        const tasks = Array.from(taskList.children);
+        tasks.sort((a, b) => {
+          const aPriority = a.classList.contains('high') ? "High" :
+            a.classList.contains('medium') ? "Medium" : "Low";
+          const bPriority = b.classList.contains('high') ? "High":
+            b.classList.contains('medium') ? "Medium": "Low";
+          return PRIORITY_ORDER[aPriority] - PRIORITY_ORDER[bPriority];
+        });
+        taskList.innerHTML = "";
+        tasks.forEach(task => taskList.appendChild(task));
+      }
+      clearButton.addEventListener('click', function () {
+        if (confirm("Are you sure you want to clear all tasks?")) {
+          taskList.innerHTML = "";
+        }
+      });
+      errorMessage.style.display = "none";
+    });
+  </script>
+</body>
+</html>
